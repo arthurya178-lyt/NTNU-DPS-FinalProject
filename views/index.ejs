@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <%- include('component/import.ejs',{title:"台北市交通資訊一覽"}) %>
+  <body>
+  <%- include('component/header.ejs') %>
+    <div class="container">
+      <h1>行車公告</h1>
+      <!-- 行車公告 -->
+      <div id="car-announcement" class="container-fluid row">
+
+      </div>
+    </div>
+  </body>
+  <script>
+    // Traffic News
+    axios.get('https://tcgbusfs.blob.core.windows.net/dotapp/news.json').then((res=>{
+      console.log(res.data.News)
+      let news = res.data.News || []
+      for(let i = 0 ; news && i < news.length;i++){
+        let card = document.createElement('card')
+        card.classList.add('card')
+        card.classList.add('col-5')
+        card.classList.add('m-1')
+        let cardBody = document.createElement('div')
+        cardBody.classList.add('card-body')
+        let title = document.createElement('h5')
+        title.classList.add('card-title')
+        title.innerHTML = news[i].chtmessage
+
+        let text =document.createElement('p')
+        text.classList.add('card-text')
+        text.innerHTML = news[i].content
+        cardBody.appendChild(title)
+        cardBody.appendChild(text)
+        card.appendChild(cardBody)
+        document.getElementById("car-announcement").appendChild(card)
+      }
+    }))
+  </script>
+
+
+</html>
+

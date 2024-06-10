@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<%- include('component/import.ejs',{title:"台北市交通資訊一覽"}) %>
+<body>
+<%- include('component/header.ejs') %>
+<div class="container">
+    <h1>車流資訊</h1>
+    <h5 class="fw-bold">資料更新時刻： <span id="update-time"></span></h5>
+    <!-- 行車公告 -->
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">地點</th>
+            <th scope="col">平均速度</th>
+            <th scope="col">車流密度</th>
+        </tr>
+        </thead>
+        <tbody id="detail-table">
+        </tbody>
+    </table>
+</div>
+</body>
+<script>
+    // Traffic News
+    axios.get('https://tcgbusfs.blob.core.windows.net/blobtisv/GetVD.xml.gz', {responseType: 'arraybuffer'})
+        .then(response => {
+            const buffer = response.data;  // response.data 現在是 ArrayBuffer
+            fflate.gunzip(new Uint8Array(buffer), (err, decompressed) => {
+                if (err) {
+                    console.error('解壓縮錯誤:', err);
+                } else {
+                    const xmlText = new TextDecoder("utf-8").decode(decompressed);
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                    const dataSet = xmlDoc.getElementsByTagName('vd:SectionDataSet')[0].getElementsByTagName('vd:SectionData')
+                    console.log(xmlDoc)
+                    let date = new Date(`${xmlDoc.getElementsByTagName('vd:ExchangeTime')[0].textContent}`.replace(/\//g, '-'))
+                    document.getElementById('update-time').innerHTML = `${date.toLocaleDateString()} ${date.toLocaleTimeString()} `
+                    let showTable = document.getElementById('detail-table')
+                    for(let i = 0 ; i < dataSet.length;i++){
+                        let row = document.createElement('tr')
+                        let data_1 = document.createElement('td')
+                        data_1.innerHTML = `${i+1}`
+                        let data_2 = document.createElement('td')
+                        data_2.innerHTML = dataSet[i].getElementsByTagName('vd:SectionName')[0].textContent
+                        let data_3 = document.createElement('td')
+                        data_3.innerHTML = `${Math.round(dataSet[i].getElementsByTagName('vd:AvgSpd')[0].textContent *10)/10}`
+                        let data_4 = document.createElement('td')
+                        data_4.innerHTML = `${Math.round(dataSet[i].getElementsByTagName('vd:AvgOcc')[0].textContent *10)/10} %`
+                        row.appendChild(data_1)
+                        row.appendChild(data_2)
+                        row.appendChild(data_3)
+                        row.appendChild(data_4)
+                        showTable.appendChild(row)
+                    }
+                }
+            });
+        })
+</script>
+
+
+</html>
+
